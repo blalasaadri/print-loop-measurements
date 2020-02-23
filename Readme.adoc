@@ -48,19 +48,43 @@ With that, we have three implementations:
 +
 [source, java]
 ----
+ifdef::env-github[]
+List<String> collect = IntStream.range(0, names.length)
+        .mapToObj(index -> index + ": " + names[index])
+        .collect(Collectors.toList());
+
+collect.forEach(blackhole::consume);
+endif::[]
+ifndef::env-github[]
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=streams, indent=0]
+endif::[]
 ----
 2. The suggestion by Coling MacLean using an enhanced for loop
 +
 [source, java]
 ----
+ifdef::env-github[]
+int i = 0;
+for (String name : names) {
+    blackhole.consume(i++ + ": " + name);
+}
+endif::[]
+ifndef::env-github[]
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=enhanced_for, indent=0]
+endif::[]
 ----
 3. My suggestion using a basic for loop with an index
 +
 [source, java]
 ----
+ifdef::env-github[]
+for (int i = 0; i < names.length; i++) {
+            blackhole.consume(i + ": " + names[i]);
+        }
+endif::[]
+ifndef::env-github[]
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=old_school_for, indent=0]
+endif::[]
 ----
 
 == Running these benchmarks
@@ -75,7 +99,16 @@ To change the Java version, modify the `java.version` property in the `pom.xml`:
 [source, xml]
 ----
 <properties>
+ifdef::env-github[]
+    <!--
+        Java version to use for compilation.
+        Possible values: 8, 9, 10, 11, 12, 13,...
+      -->
+    <java.verion>13</java.verion>
+endif::[]
+ifndef::env-github[]
 include::pom.xml[tag=java_version, , indent=4]
+endif::[]
 <properties>
 ----
 Or via the command line:
@@ -159,7 +192,16 @@ However, here are my thoughts on the three implementations.
 .The original suggestion using Streams
 [source, java]
 ----
+ifdef::env-github[]
+List<String> collect = IntStream.range(0, names.length)
+        .mapToObj(index -> index + ": " + names[index])
+        .collect(Collectors.toList());
+
+collect.forEach(blackhole::consume);
+endif::[]
+ifndef::env-github[]
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=streams, indent=0]
+endif::[]
 ----
 
 This has a total of 4 lines of code (not counting the empty line).
@@ -168,7 +210,15 @@ To understand what it's doing, you have to understand how the stream is created,
 .The suggestion by Coling MacLean using an enhanced for loop
 [source, java]
 ----
+ifdef::env-github[]
+int i = 0;
+for (String name : names) {
+    blackhole.consume(i++ + ": " + name);
+}
+endif::[]
+ifndef::env-github[]
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=enhanced_for, indent=0]
+endif::[]
 ----
 
 This also has a total of 4 lines of code.
@@ -177,7 +227,14 @@ To understand what it's doing, you have to understand how an https://docs.oracle
 .My suggestion using a basic for loop with an index
 [source, java]
 ----
+ifdef::env-github[]
+for (int i = 0; i < names.length; i++) {
+            blackhole.consume(i + ": " + names[i]);
+        }
+endif::[]
+ifndef::env-github[]
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=old_school_for, indent=0]
+endif::[]
 ----
 
 This has a total of 3 lines of code.
