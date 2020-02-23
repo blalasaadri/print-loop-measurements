@@ -225,21 +225,32 @@ With the much longer array of names, the enhanced for loop clocked in at about 1
 
 The complete output can be found in https://gist.github.com/blalasaadri/d0b05f422cba32b71450c8f2b73a577c:[this gist].
 
-//=== With Java 13
-//
-//.Java version information for Java 13
-//[source, console]
-//----
-//$ java -version
-//openjdk version "13.0.1" 2019-10-15
-//OpenJDK Runtime Environment AdoptOpenJDK (build 13.0.1+9)
-//OpenJDK 64-Bit Server VM AdoptOpenJDK (build 13.0.1+9, mixed mode, sharing)
-//----
-//
-//.Benchmark results
-//[source]
-//----
-//----
+=== With Java 13
+
+.Java version information for Java 13
+[source, console]
+----
+$ java -version
+openjdk version "13.0.1" 2019-10-15
+OpenJDK Runtime Environment AdoptOpenJDK (build 13.0.1+9)
+OpenJDK 64-Bit Server VM AdoptOpenJDK (build 13.0.1+9, mixed mode, sharing)
+----
+
+.Benchmark results
+[source]
+----
+Benchmark                                   (listVariant)   Mode  Cnt        Score        Error  Units
+MyBenchmark.mapAndPrintWithStreams             FIVE_NAMES  thrpt   25  5355473,456 ± 527496,942  ops/s
+MyBenchmark.mapAndPrintWithStreams   AUTO_GENERATED_NAMES  thrpt   25    26485,990 ±   2196,793  ops/s
+MyBenchmark.printInEnhancedForLoop             FIVE_NAMES  thrpt   25  8839903,376 ± 991895,966  ops/s
+MyBenchmark.printInEnhancedForLoop   AUTO_GENERATED_NAMES  thrpt   25    35993,876 ±   2339,770  ops/s
+MyBenchmark.printInOldSchoolForLoop            FIVE_NAMES  thrpt   25  9110027,753 ± 678835,086  ops/s
+MyBenchmark.printInOldSchoolForLoop  AUTO_GENERATED_NAMES  thrpt   25    35559,584 ±   2999,247  ops/s
+----
+For the original, shorter list, the enhanced for loop had about 1.65 the throughput compared to the stream while the basic for loop had about 1.70 times the throughput.
+With the much longer array of names, the enhanced for loop clocked in at about 1.36 times the throughput of the stream solution basic for loop managed about 1.34 times the throughput.
+
+The complete output can be found in https://gist.github.com/blalasaadri/3841ae12bde7e6f32dc02c41fc375ebe:[this gist].
 
 //=== With Java 14 (early access)
 //
