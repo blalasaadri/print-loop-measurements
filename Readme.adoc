@@ -1,4 +1,12 @@
 = Measuring print loops
+:icons: font
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
 
 On February 23rd, 2020, the Twitter account https://twitter.com/java:[@java] tweeted out the following:
 
@@ -117,34 +125,25 @@ Or via the command line:
 $ ./mvnw clean package -Djava.version=8
 ----
 
-== Measurements
-I ran all measurements with the following Java version:
+The benchmarks can then be run with:
 [source, console]
 ----
-$ java -version
-openjdk version "13.0.1" 2019-10-15
-OpenJDK Runtime Environment AdoptOpenJDK (build 13.0.1+9)
-OpenJDK 64-Bit Server VM AdoptOpenJDK (build 13.0.1+9, mixed mode, sharing)
+$ java -jar target/benchmarks.java
 ----
 
-=== With the original names
-The complete output of a measurement which I made with the original names (`{"Java", "Node", "JavaScript", "Rust", "Go"}`) can be found https://gist.github.com/blalasaadri/a6df6a01ebf61263d52acd330a18356b:[here].
-The final benchmark results are:
-[source]
-----
-Benchmark                             Mode  Cnt         Score         Error  Units
-MyBenchmark.mapAndPrintWithStreams   thrpt   25   5198235,071 ±  510816,392  ops/s
-MyBenchmark.printInEnhancedForLoop   thrpt   25  10696976,184 ±  999614,529  ops/s
-MyBenchmark.printInOldSchoolForLoop  thrpt   25  10436315,340 ± 1102141,921  ops/s
-----
-So in this case, the throughput of the versions with for loops was about double that of the version with the stream.
-The enhanced for loop was slightly more efficient.
+WARNING: Running these benchmarks takes a long time. The total completion time for one call for me was about 50 minutes.
 
-=== With auto generated names
+== Measurements
 
-Normally, you wouldn't run this kind of algorithm on just 5 names.
-So, to make the whole thing a bit more realistic, I had the benchmark generate 1000 names:
+I ran all benchmarks with multiple Java versions.
+There are two variants (which is what the `listVariant` output refers to):
 
+FIVE_NAMES::
+    The original five names from the tweet: `{"Java", "Node", "JavaScript", "Rust", "Go"}`
+AUTO_GENERATED_NAMES::
+    Normally, you wouldn't run this kind of algorithm on just 5 names.
+    So, to make the whole thing a bit more realistic, I had the benchmark generate 1000 names:
++
 [source, java]
 ----
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=autogenerate_names, indent=0]
@@ -152,20 +151,82 @@ include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=autogenerate_
 This name generation occurs within a function annotated with https://javadoc.io/doc/org.openjdk.jmh/jmh-core/latest/org/openjdk/jmh/annotations/Setup.html:[`@Setup(Leve.Trial)`].
 This means, that the array is generated before each trial and this generation will _not_ be included in the measurement itself.
 
-The output of one measurement which I made can be found https://gist.github.com/blalasaadri/61bb7690a20aac496134ba014b860fee:[here].
-The final benchmark results are:
+=== With Java 8
 
+.Java version information for Java 8
+[source, console]
+----
+$ java -version
+openjdk version "1.8.0_242"
+OpenJDK Runtime Environment (build 1.8.0_242-8u242-b08-0ubuntu3~19.10-b08)
+OpenJDK 64-Bit Server VM (build 25.242-b08, mixed mode)
+----
+
+.Benchmark results
 [source]
 ----
-Benchmark                             Mode  Cnt      Score      Error  Units
-MyBenchmark.mapAndPrintWithStreams   thrpt   25  24634,932 ± 1804,697  ops/s
-MyBenchmark.printInEnhancedForLoop   thrpt   25  34491,687 ± 2478,776  ops/s
-MyBenchmark.printInOldSchoolForLoop  thrpt   25  32659,705 ± 2422,757  ops/s
+Benchmark                                   (listVariant)   Mode  Cnt         Score        Error  Units
+MyBenchmark.mapAndPrintWithStreams             FIVE_NAMES  thrpt   25   5207121,355 ± 276740,844  ops/s
+MyBenchmark.mapAndPrintWithStreams   AUTO_GENERATED_NAMES  thrpt   25     27035,503 ±   2851,299  ops/s
+MyBenchmark.printInEnhancedForLoop             FIVE_NAMES  thrpt   25  10380706,822 ± 786963,780  ops/s
+MyBenchmark.printInEnhancedForLoop   AUTO_GENERATED_NAMES  thrpt   25     38088,946 ±    348,914  ops/s
+MyBenchmark.printInOldSchoolForLoop            FIVE_NAMES  thrpt   25  10453896,992 ± 796088,166  ops/s
+MyBenchmark.printInOldSchoolForLoop  AUTO_GENERATED_NAMES  thrpt   25     38599,330 ±    358,688  ops/s
 ----
-Again, the for loops did considerably better than the stream, with the enhanced for loop having about 1.40 times the throughput compared to the stream and the basic for loop having about 1.33 time the thoughput compared to the stream.
+For the original, shorter list, both for loops had about twice the throughput compared to the stream.
+With the much longer array of names, the enhanced for loop clocked in at about 1.41 times the throughput of the stream solution basic for loop managed about 1.43 times the throughput.
+
+The complete output can be found in https://gist.github.com/blalasaadri/f9c6de09275438f4f3817e3e3a773d20:[this gist].
+
+//== With Java 11
+//.Java version information for Java 11
+//[source, console]
+//----
+//$ java -version
+//openjdk version "11.0.6" 2020-01-14
+//OpenJDK Runtime Environment (build 11.0.6+10-post-Ubuntu-1ubuntu119.10.1)
+//OpenJDK 64-Bit Server VM (build 11.0.6+10-post-Ubuntu-1ubuntu119.10.1, mixed mode, sharing)
+//----
+//
+//.Benchmark results
+//[source]
+//----
+//----
+
+//=== With Java 13
+//
+//.Java version information for Java 13
+//[source, console]
+//----
+//$ java -version
+//openjdk version "13.0.1" 2019-10-15
+//OpenJDK Runtime Environment AdoptOpenJDK (build 13.0.1+9)
+//OpenJDK 64-Bit Server VM AdoptOpenJDK (build 13.0.1+9, mixed mode, sharing)
+//----
+//
+//.Benchmark results
+//[source]
+//----
+//----
+
+//=== With Java 14 (early access)
+//
+//.Java version information for Java 14 (early access)
+//[source, console]
+//----
+//$ java -version
+//openjdk version "14-ea" 2020-03-17
+//OpenJDK Runtime Environment (build 14-ea+27-1339)
+//OpenJDK 64-Bit Server VM (build 14-ea+27-1339, mixed mode, sharing)
+//----
+//
+//.Benchmark results
+//[source]
+//----
+//----
 
 === Conclusions from those measurements
-Both for loops were considerably faster than the stream solution suggested in the original tweet.
+Both for loops were considerably faster than the stream solution suggested in the original tweet (about twice the throughput for the short list and about 1.4 times the throughput for the much longer list).
 In both cases, the enhanced for loop was slightly better than the basic for loop.
 
 The exact measurements may vary depending on a number of factors, including but not limited to:
