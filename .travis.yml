@@ -22,6 +22,8 @@ jdk:
   - openjdk14
   - oraclejdk14
 
+install: skip
+
 jobs:
   include:
     - jdk: openjdk8
