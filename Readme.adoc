@@ -11,7 +11,8 @@ http://oracl.info/xu1B50ypCAU
 image::doc/ERb3bnYX0AACSXK.png[]
 ____
 While this does of course work, it may not be the best solution (both in terms of readability and in terms of performance).
-Other suggestions were:
+
+Other suggestions made in the replies were:
 
 .Suggestion by https://twitter.com/colmaclean::[Colin MacLean] in https://twitter.com/colmaclean/status/1231486166173614080:[this tweet]
 [source, java]
@@ -151,15 +152,16 @@ Or, to quote Martin Fowler:
 ____
 Any fool can write code that a computer can understand. Good programmers write code that humans can understand.
 ____
-This microbenchmark suite can not measure readability.
 
-Here again are the three implementations:
+This microbenchmark suite can not (and does not try to) measure readability, in part because this is subjective.
+However, here are my thoughts on the three implementations.
 
 .The original suggestion using Streams
 [source, java]
 ----
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=streams, indent=0]
 ----
+
 This has a total of 4 lines of code (not counting the empty line).
 To understand what it's doing, you have to understand how the stream is created, which and how many elements are contained in that stream, how the mapping works and how the collection works.
 
@@ -168,6 +170,7 @@ To understand what it's doing, you have to understand how the stream is created,
 ----
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=enhanced_for, indent=0]
 ----
+
 This also has a total of 4 lines of code.
 To understand what it's doing, you have to understand how an https://docs.oracle.com/javase/specs/jls/se7/html/jls-14.html#jls-14.14.2:[enhanced for loop]footnote:[also sometimes called a _for each loop_] works and when the index is incremented for `i++`.
 
@@ -176,6 +179,7 @@ To understand what it's doing, you have to understand how an https://docs.oracle
 ----
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=old_school_for, indent=0]
 ----
+
 This has a total of 3 lines of code.
 To understand what it's doing, you have to understand how a https://docs.oracle.com/javase/specs/jls/se7/html/jls-14.html#jls-14.14.1:[basic for loop] works and when the index is incremented for `i++`.
 
