@@ -128,7 +128,7 @@ ifdef::env-github[]
         Java version to use for compilation.
         Possible values: 8, 9, 10, 11, 12, 13,...
       -->
-    <java.verion>13</java.verion>
+    <java.version>13</java.version>
 endif::[]
 ifndef::env-github[]
 include::pom.xml[tag=java_version, , indent=4]
