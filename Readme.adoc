@@ -70,12 +70,17 @@ The benchmarks can be compiled with Maven:
 $ ./mvnw clean package
 ----
 The project is built to run with Java 13, though it should work fine with Java 8 or later.
-To change the Java version, modify the `javac.target` property in the `pom.xml`:
+To change the Java version, modify the `java.version` property in the `pom.xml`:
 [source, xml]
 ----
 <properties>
 include::pom.xml[tag=java_version, , indent=4]
 <properties>
+----
+Or via the command line:
+[source, console]
+----
+$ ./mvnw clean package -Djava.version=8
 ----
 
 == Measurements

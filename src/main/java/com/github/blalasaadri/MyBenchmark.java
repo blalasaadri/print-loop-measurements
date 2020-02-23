@@ -31,14 +31,78 @@
 
 package com.github.blalasaadri;
 
-import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 
+import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static com.github.blalasaadri.MyBenchmark.ListVariant.FIVE_NAMES;
+
+@State(Scope.Benchmark)
 public class MyBenchmark {
 
-    @Benchmark
-    public void testMethod() {
-        // This is a demo/sample template for building your JMH benchmarks. Edit as needed.
-        // Put your benchmark code here.
+    @Param({"FIVE_NAMES", "AUTO_GENERATED_NAMES"})
+    public ListVariant listVariant;
+
+    private String[] names;
+
+    @Setup(Level.Iteration)
+    public void setup() {
+        switch (listVariant) {
+            case FIVE_NAMES:
+                // The original names
+                names = new String[]{"Java", "Node", "JavaScript", "Rust", "Go"};
+                break;
+            case AUTO_GENERATED_NAMES:
+                // tag::autogenerate_names[]
+                // 1000 new names
+                final String[] firstNames = {"Alice", "Bob", "Charles", "Dora", "Emanuel", "Fabienne", "George", "Hannelore", "Igor", "Janice"};
+                final String[] middleNames = {"Kim", "Landry", "Maria", "Nikita", "Oakley", "Perry", "Quin", "Robin", "Skyler", "Taylen"};
+                final String[] surnames = {"Underhill", "Vaccanti", "Wilson", "Xanders", "Yallopp", "Zabawa", "Anderson", "Bell", "Carter", "Diaz"};
+                names = Arrays.stream(firstNames)
+                        .flatMap(firstName -> Arrays.stream(middleNames).map(middleName -> firstName + " " + middleName))
+                        .flatMap(firstAndMiddleName -> Arrays.stream(surnames).map(surname -> firstAndMiddleName + " " + surname))
+                        .toArray(String[]::new);
+                // end::autogenerate_names[]
+                break;
+        }
     }
 
+    @Benchmark
+    public void mapAndPrintWithStreams(Blackhole blackhole) {
+        // tag::streams[]
+        List<String> collect = IntStream.range(0, names.length)
+                .mapToObj(index -> index + ": " + names[index])
+                .collect(Collectors.toList());
+
+        collect.forEach(blackhole::consume);
+        // end::streams[]
+    }
+
+    @Benchmark
+    public void printInEnhancedForLoop(Blackhole blackhole) {
+        // tag::enhanced_for[]
+        int i = 0;
+        for (String name : names) {
+            blackhole.consume(i++ + ": " + name);
+        }
+        // end::enhanced_for[]
+    }
+
+    @Benchmark
+    public void printInOldSchoolForLoop(Blackhole blackhole) {
+        // tag::old_school_for[]
+        for (int i = 0; i < names.length; i++) {
+            blackhole.consume(i + ": " + names[i]);
+        }
+        // end::old_school_for[]
+    }
+
+    public enum ListVariant {
+        FIVE_NAMES, AUTO_GENERATED_NAMES
+    }
 }
