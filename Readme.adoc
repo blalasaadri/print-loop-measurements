@@ -42,6 +42,22 @@ for (int i=0; i < names.length; i++) {
 Then, https://twitter.com/ReckordCarsten::[Carsten Reckord] https://twitter.com/ReckordCarsten/status/1231523609954455552:[suggested], that someone writes a microbenchmark to compare the three options.
 This is that microbenchmark suite.
 
+[NOTE]
+====
+[#additonal-stream-solution]
+I decided to add one further alternative, which uses streams and may be more comparable to the other two solutions:
+
+[source, java]
+----
+include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=streams_in_one_go, indent=0]
+----
+The original stream solution looped through the names twice (once when mapping them and once when printing them).
+This solution only goes through them once (since `forEach` is the only https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html#StreamOps[terminal stream operation], whereas in the original solution there was also `collect`.)
+
+This alternative is not contained in the original measurements below - in part because I only thought of this problem after I had already started measuring and in part because every new benchmark increases the runtime considerably.
+I will add the results for this new benchmark in separate gists.
+====
+
 == Implementation
 
 This microbenchmark suite uses https://openjdk.java.net/projects/code-tools/jmh/[JMH], a "`Java harness for building, running, and analysing nano/micro/milli/macro benchmarks written in Java and other languages targetting the JVM.`" footnote:[The article https://www.oracle.com/technical-resources/articles/java/architect-benchmarking.html:[Avoiding Benchmarking Pitfalls on the JVM] from July 2014 may be old, but it explains why using JMH helps avoid common mistakes when writing microbenchmarks.]
@@ -131,7 +147,12 @@ The benchmarks can then be run with:
 $ java -jar target/benchmarks.java
 ----
 
-WARNING: Running these benchmarks takes a long time. The total completion time for one call for me was about 50 minutes.
+[WARNING]
+====
+Running these benchmarks takes a long time.
+The total completion time for one call for me (with the original 3 benchmarks) was about 50 minutes.
+Having added a fourth benchmark (as described <<additonal-stream-solution, here>>) the time is even longer.
+====
 
 == Measurements
 
@@ -178,20 +199,31 @@ With the much longer array of names, the enhanced for loop clocked in at about 1
 
 The complete output can be found in https://gist.github.com/blalasaadri/f9c6de09275438f4f3817e3e3a773d20:[this gist].
 
-//== With Java 11
-//.Java version information for Java 11
-//[source, console]
-//----
-//$ java -version
-//openjdk version "11.0.6" 2020-01-14
-//OpenJDK Runtime Environment (build 11.0.6+10-post-Ubuntu-1ubuntu119.10.1)
-//OpenJDK 64-Bit Server VM (build 11.0.6+10-post-Ubuntu-1ubuntu119.10.1, mixed mode, sharing)
-//----
-//
-//.Benchmark results
-//[source]
-//----
-//----
+== With Java 11
+.Java version information for Java 11
+[source, console]
+----
+$ java -version
+openjdk version "11.0.6" 2020-01-14
+OpenJDK Runtime Environment (build 11.0.6+10-post-Ubuntu-1ubuntu119.10.1)
+OpenJDK 64-Bit Server VM (build 11.0.6+10-post-Ubuntu-1ubuntu119.10.1, mixed mode, sharing)
+----
+
+.Benchmark results
+[source]
+----
+Benchmark                                   (listVariant)   Mode  Cnt        Score         Error  Units
+MyBenchmark.mapAndPrintWithStreams             FIVE_NAMES  thrpt   25  4296358,352 ±  545014,011  ops/s
+MyBenchmark.mapAndPrintWithStreams   AUTO_GENERATED_NAMES  thrpt   25    26803,661 ±    3479,115  ops/s
+MyBenchmark.printInEnhancedForLoop             FIVE_NAMES  thrpt   25  9348700,863 ± 1023949,109  ops/s
+MyBenchmark.printInEnhancedForLoop   AUTO_GENERATED_NAMES  thrpt   25    37878,684 ±    3026,570  ops/s
+MyBenchmark.printInOldSchoolForLoop            FIVE_NAMES  thrpt   25  9819339,718 ± 1230652,392  ops/s
+MyBenchmark.printInOldSchoolForLoop  AUTO_GENERATED_NAMES  thrpt   25    39678,611 ±    3593,970  ops/s
+----
+For the original, shorter list, the enhanced for loop had about 2.18 the throughput compared to the stream while the basic for loop had about 2.29 times the throughput.
+With the much longer array of names, the enhanced for loop clocked in at about 1.41 times the throughput of the stream solution basic for loop managed about 1.48 times the throughput.
+
+The complete output can be found in https://gist.github.com/blalasaadri/d0b05f422cba32b71450c8f2b73a577c:[this gist].
 
 //=== With Java 13
 //

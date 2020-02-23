@@ -37,12 +37,18 @@ import org.openjdk.jmh.infra.Blackhole;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.github.blalasaadri.MyBenchmark.ListVariant.FIVE_NAMES;
 
 @State(Scope.Benchmark)
+@Measurement(
+        iterations = 5,
+        time = 10,
+        timeUnit = TimeUnit.SECONDS
+)
 public class MyBenchmark {
 
     @Param({"FIVE_NAMES", "AUTO_GENERATED_NAMES"})
@@ -81,6 +87,15 @@ public class MyBenchmark {
 
         collect.forEach(blackhole::consume);
         // end::streams[]
+    }
+
+//    @Benchmark
+    public void mapAndPrintWithStreamsInOneGo(Blackhole blackhole) {
+        // tag::streams_in_one_go[]
+        IntStream.range(0, names.length)
+                .mapToObj(index -> index + ": " + names[index])
+                .forEach(blackhole::consume);
+        // end::streams_in_one_go[]
     }
 
     @Benchmark
