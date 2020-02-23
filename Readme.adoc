@@ -252,21 +252,32 @@ With the much longer array of names, the enhanced for loop clocked in at about 1
 
 The complete output can be found in https://gist.github.com/blalasaadri/3841ae12bde7e6f32dc02c41fc375ebe:[this gist].
 
-//=== With Java 14 (early access)
-//
-//.Java version information for Java 14 (early access)
-//[source, console]
-//----
-//$ java -version
-//openjdk version "14-ea" 2020-03-17
-//OpenJDK Runtime Environment (build 14-ea+27-1339)
-//OpenJDK 64-Bit Server VM (build 14-ea+27-1339, mixed mode, sharing)
-//----
-//
-//.Benchmark results
-//[source]
-//----
-//----
+=== With Java 14 (early access)
+
+.Java version information for Java 14 (early access)
+[source, console]
+----
+$ java -version
+openjdk version "14-ea" 2020-03-17
+OpenJDK Runtime Environment (build 14-ea+27-1339)
+OpenJDK 64-Bit Server VM (build 14-ea+27-1339, mixed mode, sharing)
+----
+
+.Benchmark results
+[source]
+----
+Benchmark                                   (listVariant)   Mode  Cnt        Score        Error  Units
+MyBenchmark.mapAndPrintWithStreams             FIVE_NAMES  thrpt   25  4755692,653 ± 410854,229  ops/s
+MyBenchmark.mapAndPrintWithStreams   AUTO_GENERATED_NAMES  thrpt   25    24668,440 ±   2109,834  ops/s
+MyBenchmark.printInEnhancedForLoop             FIVE_NAMES  thrpt   25  8991645,685 ± 841362,203  ops/s
+MyBenchmark.printInEnhancedForLoop   AUTO_GENERATED_NAMES  thrpt   25    32641,574 ±   3623,476  ops/s
+MyBenchmark.printInOldSchoolForLoop            FIVE_NAMES  thrpt   25  8576218,147 ± 790441,689  ops/s
+MyBenchmark.printInOldSchoolForLoop  AUTO_GENERATED_NAMES  thrpt   25    27693,151 ±   2840,307  ops/s
+----
+For the original, shorter list, the enhanced for loop had about 1.89 the throughput compared to the stream while the basic for loop had about 1.80 times the throughput.
+With the much longer array of names, the enhanced for loop clocked in at about 1.32 times the throughput of the stream solution basic for loop managed about 1.12 times the throughput.
+
+The complete output can be found in https://gist.github.com/blalasaadri/97fdc61a05c214aff435756558a8636b:[this gist].
 
 === Conclusions from those measurements
 Both for loops were considerably faster than the stream solution suggested in the original tweet (about twice the throughput for the short list and about 1.4 times the throughput for the much longer list).
