@@ -1,0 +1,181 @@
+= Measuring print loops
+
+On February 23rd, 2020, the Twitter account https://twitter.com/java:[@java] tweeted out the following:
+
+[quote, @java on Twitter, https://twitter.com/java/status/1231443603102294019]
+____
+A simple tip to print the Array or List with index in the front. #Java
+
+http://oracl.info/xu1B50ypCAU
+
+image::doc/ERb3bnYX0AACSXK.png[]
+____
+While this does of course work, it may not be the best solution (both in terms of readability and in terms of performance).
+Other suggestions were:
+
+.Suggestion by https://twitter.com/colmaclean::[Colin MacLean] in https://twitter.com/colmaclean/status/1231486166173614080:[this tweet]
+[source, java]
+----
+int i = 0;
+for (String name : names) {
+   System.out.println(i++ + “: “ + name);
+}
+----
+and
+
+.Suggestion by http://twitter.com/blalasaadri:[me] in https://twitter.com/blalasaadri/status/1231512531786752000:[this tweet]
+[source, java]
+----
+for (int i=0; i < names.length; i++) {
+  System.out.println(i + ": " + names[i]);
+}
+----
+Then, https://twitter.com/ReckordCarsten::[Carsten Reckord] https://twitter.com/ReckordCarsten/status/1231523609954455552:[suggested], that someone writes a microbenchmark to compare the three options.
+This is that microbenchmark suite.
+
+== Implementation
+
+This microbenchmark suite uses https://openjdk.java.net/projects/code-tools/jmh/[JMH], a "`Java harness for building, running, and analysing nano/micro/milli/macro benchmarks written in Java and other languages targetting the JVM.`" footnote:[The article https://www.oracle.com/technical-resources/articles/java/architect-benchmarking.html:[Avoiding Benchmarking Pitfalls on the JVM] from July 2014 may be old, but it explains why using JMH helps avoid common mistakes when writing microbenchmarks.]
+
+Rather than using `System.out.println(..)` (which will synchronously output the given string to `stdout` by default), I decided to use an instance of https://javadoc.io/doc/org.openjdk.jmh/jmh-core/1.23/org/openjdk/jmh/infra/Blackhole.html#consume-java.lang.Object-:[`Blackhole#consume(Object)`] instead.
+This will prevent https://en.wikipedia.org/wiki/Dead_code_elimination:[dead-code elimination] by the runtime.
+The `blackhole` objects in the following code are instances of `Blackhole`.
+
+With that, we have three implementations:
+
+1. The original suggestion using Streams
++
+[source, java]
+----
+include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=streams, indent=0]
+----
+2. The suggestion by Coling MacLean using an enhanced for loop
++
+[source, java]
+----
+include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=enhanced_for, indent=0]
+----
+3. My suggestion using a basic for loop with an index
++
+[source, java]
+----
+include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=old_school_for, indent=0]
+----
+
+== Running these benchmarks
+
+The benchmarks can be compiled with Maven:
+[source, console]
+----
+$ ./mvnw clean package
+----
+The project is built to run with Java 13, though it should work fine with Java 8 or later.
+To change the Java version, modify the `javac.target` property in the `pom.xml`:
+[source, xml]
+----
+<properties>
+include::pom.xml[tag=java_version, , indent=4]
+<properties>
+----
+
+== Measurements
+I ran all measurements with the following Java version:
+[source, console]
+----
+$ java -version
+openjdk version "13.0.1" 2019-10-15
+OpenJDK Runtime Environment AdoptOpenJDK (build 13.0.1+9)
+OpenJDK 64-Bit Server VM AdoptOpenJDK (build 13.0.1+9, mixed mode, sharing)
+----
+
+=== With the original names
+The complete output of a measurement which I made with the original names (`{"Java", "Node", "JavaScript", "Rust", "Go"}`) can be found https://gist.github.com/blalasaadri/a6df6a01ebf61263d52acd330a18356b:[here].
+The final benchmark results are:
+[source]
+----
+Benchmark                             Mode  Cnt         Score         Error  Units
+MyBenchmark.mapAndPrintWithStreams   thrpt   25   5198235,071 ±  510816,392  ops/s
+MyBenchmark.printInEnhancedForLoop   thrpt   25  10696976,184 ±  999614,529  ops/s
+MyBenchmark.printInOldSchoolForLoop  thrpt   25  10436315,340 ± 1102141,921  ops/s
+----
+So in this case, the throughput of the versions with for loops was about double that of the version with the stream.
+The enhanced for loop was slightly more efficient.
+
+=== With auto generated names
+
+Normally, you wouldn't run this kind of algorithm on just 5 names.
+So, to make the whole thing a bit more realistic, I had the benchmark generate 1000 names:
+
+[source, java]
+----
+include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=autogenerate_names, indent=0]
+----
+This name generation occurs within a function annotated with https://javadoc.io/doc/org.openjdk.jmh/jmh-core/latest/org/openjdk/jmh/annotations/Setup.html:[`@Setup(Leve.Trial)`].
+This means, that the array is generated before each trial and this generation will _not_ be included in the measurement itself.
+
+The output of one measurement which I made can be found https://gist.github.com/blalasaadri/61bb7690a20aac496134ba014b860fee:[here].
+The final benchmark results are:
+
+[source]
+----
+Benchmark                             Mode  Cnt      Score      Error  Units
+MyBenchmark.mapAndPrintWithStreams   thrpt   25  24634,932 ± 1804,697  ops/s
+MyBenchmark.printInEnhancedForLoop   thrpt   25  34491,687 ± 2478,776  ops/s
+MyBenchmark.printInOldSchoolForLoop  thrpt   25  32659,705 ± 2422,757  ops/s
+----
+Again, the for loops did considerably better than the stream, with the enhanced for loop having about 1.40 times the throughput compared to the stream and the basic for loop having about 1.33 time the thoughput compared to the stream.
+
+=== Conclusions from those measurements
+Both for loops were considerably faster than the stream solution suggested in the original tweet.
+In both cases, the enhanced for loop was slightly better than the basic for loop.
+
+The exact measurements may vary depending on a number of factors, including but not limited to:
+
+- the hardware used to run the benchmarks
+- the Java version used to run the benchmarks
+- other processes running at the same time as the benchmarks
+
+The finding, that both for loops are faster than the solution using streams however is very likely to hold up, even taking those considerations into account.
+
+== Other considerations
+
+One major point to be considered when writing code is the readability of this code - ideally, code should be easy to understand.
+Or, to quote Martin Fowler:
+
+[quote, Martin Fowler, "Refactoring: Improving the Design of Existing Code, 1999, p. 15"]
+____
+Any fool can write code that a computer can understand. Good programmers write code that humans can understand.
+____
+This microbenchmark suite can not measure readability.
+
+Here again are the three implementations:
+
+.The original suggestion using Streams
+[source, java]
+----
+include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=streams, indent=0]
+----
+This has a total of 4 lines of code (not counting the empty line).
+To understand what it's doing, you have to understand how the stream is created, which and how many elements are contained in that stream, how the mapping works and how the collection works.
+
+.The suggestion by Coling MacLean using an enhanced for loop
+[source, java]
+----
+include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=enhanced_for, indent=0]
+----
+This also has a total of 4 lines of code.
+To understand what it's doing, you have to understand how an https://docs.oracle.com/javase/specs/jls/se7/html/jls-14.html#jls-14.14.2:[enhanced for loop]footnote:[also sometimes called a _for each loop_] works and when the index is incremented for `i++`.
+
+.My suggestion using a basic for loop with an index
+[source, java]
+----
+include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=old_school_for, indent=0]
+----
+This has a total of 3 lines of code.
+To understand what it's doing, you have to understand how a https://docs.oracle.com/javase/specs/jls/se7/html/jls-14.html#jls-14.14.1:[basic for loop] works and when the index is incremented for `i++`.
+
+I am of the opinion (and you may disagree on this), that the basic for loop is the best choice here for the following reasons:
+
+- it has the fewest lines of code while still being easy to understand
+- it requires only very basic knowledge of the Java language and no APIs (such as the Stream API)
+- it makes explicit use of the index `i`, not only to retrieve the item from the array but also to be part of the result
