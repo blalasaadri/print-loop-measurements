@@ -20,6 +20,8 @@ http://oracl.info/xu1B50ypCAU
 
 image::doc/ERb3bnYX0AACSXK.png[]
 ____
+
+
 While this does of course work, it may not be the best solution (both in terms of readability and in terms of performance).
 
 Other suggestions made in the replies were:
@@ -51,7 +53,16 @@ I decided to add one further alternative, which uses streams and may be more com
 
 [source, java]
 ----
+ifdef::env-github[]
+List<String> collect = IntStream.range(0, names.length)
+        .mapToObj(index -> index + ": " + names[index])
+        .collect(Collectors.toList());
+
+collect.forEach(blackhole::consume);
+endif::[]
+ifndef::env-github[]
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=streams_in_one_go, indent=0]
+endif::[]
 ----
 The original stream solution looped through the names twice (once when mapping them and once when printing them).
 This solution only goes through them once (since `forEach` is the only https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html#StreamOps[terminal stream operation], whereas in the original solution there was also `collect`.)
@@ -169,7 +180,19 @@ AUTO_GENERATED_NAMES::
 +
 [source, java]
 ----
+ifdef::env-github[]
+// 1000 new names
+final String[] firstNames = {"Alice", "Bob", "Charles", "Dora", "Emanuel", "Fabienne", "George", "Hannelore", "Igor", "Janice"};
+final String[] middleNames = {"Kim", "Landry", "Maria", "Nikita", "Oakley", "Perry", "Quin", "Robin", "Skyler", "Taylen"};
+final String[] surnames = {"Underhill", "Vaccanti", "Wilson", "Xanders", "Yallopp", "Zabawa", "Anderson", "Bell", "Carter", "Diaz"};
+names = Arrays.stream(firstNames)
+        .flatMap(firstName -> Arrays.stream(middleNames).map(middleName -> firstName + " " + middleName))
+        .flatMap(firstAndMiddleName -> Arrays.stream(surnames).map(surname -> firstAndMiddleName + " " + surname))
+        .toArray(String[]::new);
+endif::[]
+ifndef::env-github[]
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=autogenerate_names, indent=0]
+endif::[]
 ----
 This name generation occurs within a function annotated with https://javadoc.io/doc/org.openjdk.jmh/jmh-core/latest/org/openjdk/jmh/annotations/Setup.html:[`@Setup(Leve.Trial)`].
 This means, that the array is generated before each trial and this generation will _not_ be included in the measurement itself.
@@ -302,6 +325,7 @@ Or, to quote Martin Fowler:
 ____
 Any fool can write code that a computer can understand. Good programmers write code that humans can understand.
 ____
+
 
 This microbenchmark suite can not (and does not try to) measure readability, in part because this is subjective.
 However, here are my thoughts on the three implementations.
