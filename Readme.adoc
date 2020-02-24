@@ -8,6 +8,8 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
+image:https://travis-ci.com/blalasaadri/print-loop-measurements.svg?branch=master[Travis CI build status]
+
 On February 23rd, 2020, the Twitter account https://twitter.com/java:[@java] tweeted out the following:
 
 [quote, @java on Twitter, https://twitter.com/java/status/1231443603102294019]
