@@ -54,11 +54,9 @@ I decided to add one further alternative, which uses streams and may be more com
 [source, java]
 ----
 ifdef::env-github[]
-List<String> collect = IntStream.range(0, names.length)
+IntStream.range(0, names.length)
         .mapToObj(index -> index + ": " + names[index])
-        .collect(Collectors.toList());
-
-collect.forEach(blackhole::consume);
+        .forEach(blackhole::consume);
 endif::[]
 ifndef::env-github[]
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=streams_in_one_go, indent=0]
