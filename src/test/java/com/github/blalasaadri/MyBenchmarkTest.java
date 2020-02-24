@@ -24,12 +24,14 @@ class MyBenchmarkTest {
 
     @Test
     public void runJmhBenchmark() throws RunnerException {
+        // tag::test_option_definitions[]
         Options opt = new OptionsBuilder()
                 .measurementTime(TimeValue.seconds(1))
                 .measurementIterations(3)
                 .forks(3)
                 .include(MyBenchmark.class.getSimpleName())
                 .build();
+        // end::test_option_definitions[]
         Collection<RunResult> runResults = new Runner(opt).run();
         assertFalse(runResults.isEmpty());
 

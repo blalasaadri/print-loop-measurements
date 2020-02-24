@@ -127,29 +127,40 @@ endif::[]
 The benchmarks can be compiled with Maven:
 [source, console]
 ----
-$ ./mvnw clean package
+$ ./mvnw clean package -DskipTests
 ----
-The project is built to run with Java 13, though it should work fine with Java 8 or later.
-To change the Java version, modify the `java.version` property in the `pom.xml`:
+for the projects default Java version (8) to be used or
+[source, console]
+----
+$ ./mvnw clean package -DskipTests -Djava.version=<java version>
+----
+where `<java version>` can be anything between 8 and 14 (or maybe later), assuming you have a matching JDK available to Maven.
+To check the Java version available to Maven, you can run:
+[source, console]
+----
+$ ./mvnw -version
+Apache Maven 3.6.3 (cecedd343002696d0abb50b32b541b8a6ba2883f)
+Maven home: <home path>/.m2/wrapper/dists/apache-maven-3.6.3-bin/1iopthnavndlasol9gbrbg6bf2/apache-maven-3.6.3
+Java version: 13.0.1, vendor: AdoptOpenJDK, runtime: /usr/lib/jvm/adoptopenjdk-13-hotspot-amd64
+Default locale: de_DE, platform encoding: UTF-8
+OS name: "linux", version: "5.3.0-40-generic", arch: "amd64", family: "unix"
+----
+
+To change the projects default Java version, you can modify the `java.version` property in the `pom.xml`:
 [source, xml]
 ----
 <properties>
 ifdef::env-github[]
     <!--
         Java version to use for compilation.
-        Possible values: 8, 9, 10, 11, 12, 13,...
+        Possible values: 8, 9, 10, 11, 12, 13, 14...
       -->
-    <java.version>13</java.version>
+    <java.version>8</java.version>
 endif::[]
 ifndef::env-github[]
 include::pom.xml[tag=java_version, , indent=4]
 endif::[]
 <properties>
-----
-Or via the command line:
-[source, console]
-----
-$ ./mvnw clean package -Djava.version=8
 ----
 
 The benchmarks can then be run with:
@@ -162,7 +173,48 @@ $ java -jar target/benchmarks.java
 ====
 Running these benchmarks takes a long time.
 The total completion time for one call for me (with the original 3 benchmarks) was about 50 minutes.
-Having added a fourth benchmark (as described <<additonal-stream-solution, here>>) the time is even longer.
+Having added a fourth benchmark (as described <<additonal-stream-solution, here>>) the time is even longer (estimated: 1:06:40 hours).
+====
+
+Alternatively, a version of the tests with fewer runs can also be run with
+[source, console]
+----
+$ ./mvnw test
+----
+[NOTE]
+====
+The benchmarks run with `./mvnw test` are defined in the `MyBenchmarkTest.java` class.
+These tests have the following run parameters:
+[source, java]
+----
+ifdef::env-github[]
+Options opt = new OptionsBuilder()
+        .measurementTime(TimeValue.seconds(1))
+        .measurementIterations(3)
+        .forks(3)
+        .include(MyBenchmark.class.getSimpleName())
+        .build();
+endif::[]
+ifndef::env-github[]
+include::src/test/java/com/github/blalasaadri/MyBenchmarkTest.java[tag=test_option_definitions, indent=0]
+endif::[]
+----
+In comparison, the full test suite has the following definitions:
+[source, java]
+----
+ifdef::env-github[]
+@Measurement(
+        iterations = 5,
+        time = 10,
+        timeUnit = TimeUnit.SECONDS
+)
+@Fork(5)
+endif::[]
+ifndef::env-github[]
+include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=benchmark_option_definitions, indent=0]
+endif::[]
+----
+This reduction reduces the time to run all tests to an estimated 21:12 minutes.
 ====
 
 == Measurements

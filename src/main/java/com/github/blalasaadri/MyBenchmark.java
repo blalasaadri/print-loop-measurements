@@ -44,11 +44,14 @@ import java.util.stream.IntStream;
 import static com.github.blalasaadri.MyBenchmark.ListVariant.FIVE_NAMES;
 
 @State(Scope.Benchmark)
+// tag::benchmark_option_definitions[]
 @Measurement(
         iterations = 5,
         time = 10,
         timeUnit = TimeUnit.SECONDS
 )
+@Fork(5)
+// end::benchmark_option_definitions[]
 public class MyBenchmark {
 
     @Param({"FIVE_NAMES", "AUTO_GENERATED_NAMES"})

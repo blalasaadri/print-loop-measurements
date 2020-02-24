@@ -53,7 +53,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
             Java version to use for compilation.
             Possible values: 8, 9, 10, 11, 12, 13,...
           -->
-        <java.version>13</java.version>
+        <java.version>8</java.version>
         <!-- #end::java_version[] -->
 
         <!--
