@@ -89,7 +89,7 @@ public class MyBenchmark {
         // end::streams[]
     }
 
-//    @Benchmark
+    @Benchmark
     public void mapAndPrintWithStreamsInOneGo(Blackhole blackhole) {
         // tag::streams_in_one_go[]
         IntStream.range(0, names.length)
