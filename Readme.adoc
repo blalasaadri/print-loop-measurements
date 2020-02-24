@@ -217,6 +217,10 @@ endif::[]
 This reduction reduces the time to run all tests to an estimated 21:12 minutes.
 ====
 
+=== CI job
+This project is set up to be built in Travis CI.
+The build job can be found https://travis-ci.com/blalasaadri/print-loop-measurements:[here], including the measurements (using `./mvnw test`) for multiple JDK versions.
+
 == Measurements
 
 I ran all benchmarks with multiple Java versions.
@@ -420,8 +424,8 @@ To understand what it's doing, you have to understand how an https://docs.oracle
 ----
 ifdef::env-github[]
 for (int i = 0; i < names.length; i++) {
-            blackhole.consume(i + ": " + names[i]);
-        }
+    blackhole.consume(i + ": " + names[i]);
+}
 endif::[]
 ifndef::env-github[]
 include::src/main/java/com/github/blalasaadri/MyBenchmark.java[tag=old_school_for, indent=0]
